@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@coin</title>
     
-    <!-- Import Poppins font from Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
     
     <link id="favicon" rel="icon" type="image/png" href="favicon.png">
@@ -26,7 +25,6 @@
             position: relative;
             overflow: hidden;
         }
-        /* Blurred background setup */
         body::before {
             content: '';
             position: absolute;
@@ -39,7 +37,6 @@
             z-index: -1;
             transform: scale(1.1);
         }
-        /* Dark overlay for contrast */
         body::after {
             content: '';
             position: absolute;
@@ -47,7 +44,6 @@
             background: rgba(0, 0, 0, 0.5);
             z-index: -1;
         }
-        /* Overlay */
         #overlay {
             position: fixed;
             inset: 0;
