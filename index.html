@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>deeewi@term: ~</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&display=swap" rel="stylesheet">
+    
+    <link id="favicon" rel="icon" type="image/png" href="favicon.png">
+    
+    <style>
+        :root {
+            --bg-color: #1e1e2e;
+            --term-bg: #181825;
+            --text-color: #cdd6f4;
+            --subtext-color: #a6adc8;
+            --accent-green: #a6e3a1;
+            --accent-blue: #89b4fa;
+            --accent-pink: #f5c2e7;
+            --accent-red: #f38ba8;
+            --cursor-color: #cdd6f4;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-user-select: none; /* Safari */
+            -moz-user-select: none;    /* Firefox */
+            -ms-user-select: none;     /* IE10+/Edge */
+            user-select: none;         /* Standard */
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Fira Code', monospace;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            background-image: radial-gradient(circle at 20% 20%, rgba(137, 180, 250, 0.1) 0%, transparent 40%),
+                              radial-gradient(circle at 80% 80%, rgba(166, 227, 161, 0.05) 0%, transparent 40%);
+        }
+
+        #overlay {
+            position: fixed;
+            inset: 0;
+            background: #11111b;
+            z-index: 999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: opacity 0.5s ease;
+        }
+
+        #overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .terminal-prompt {
+            font-size: 1rem;
+            color: var(--accent-green);
+        }
+
+        .blinking-cursor {
+            display: inline-block;
+            width: 10px;
+            height: 1.2em;
+            background-color: var(--cursor-color);
+            animation: blink 1s step-end infinite;
+            vertical-align: text-bottom;
+            margin-left: 5px;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+
+        .terminal-window {
+            width: 800px;
+            max-width: 95%;
+            background: rgba(24, 24, 37, 0.95);
+            border-radius: 12px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            opacity: 0;
+            transform: scale(0.95);
+            transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        .terminal-window.visible {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .terminal-header {
+            background: rgba(255, 255, 255, 0.03);
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            border-top-left-radius: 12px;
+            border-top-right-radius: 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .dots {
+            display: flex;
+            gap: 8px;
+        }
+
+        .dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .dot-red { background: #f38ba8; }
+        .dot-yellow { background: #f9e2af; }
+        .dot-green { background: #a6e3a1; }
+
+        .title {
+            margin-left: 20px;
+            font-size: 0.8rem;
+            color: var(--subtext-color);
+        }
+
+        /* Terminal Body */
+        .terminal-body {
+            padding: 30px;
+            display: flex;
+            flex-direction: row;
+            gap: 40px;
+            align-items: center;
+        }
+
+        .avatar-container {
+            flex-shrink: 0;
+        }
+
+        .avatar {
+            width: 200px;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 8px; 
+            box-shadow: 0 0 20px rgba(137, 180, 250, 0.2);
+            filter: sepia(20%) hue-rotate(190deg) contrast(1.1);
+        }
+
+        .info-container {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .command-line {
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+        }
+
+        .user { color: var(--accent-green); font-weight: 600; }
+        .at { color: var(--text-color); }
+        .host { color: var(--accent-blue); font-weight: 600; }
+        .path { color: var(--accent-pink); }
+
+        .output-line {
+            display: flex;
+            margin-bottom: 6px;
+            line-height: 1.5;
+        }
+
+        .key {
+            color: var(--accent-blue);
+            min-width: 100px;
+            font-weight: 600;
+        }
+
+        .value {
+            color: var(--text-color);
+        }
+
+        .link {
+            color: var(--text-color);
+            text-decoration: none;
+            position: relative;
+            transition: color 0.2s;
+            cursor: pointer;
+        }
+
+        .link:hover {
+            color: var(--accent-green);
+        }
+
+        .link::before {
+            content: './';
+            color: var(--subtext-color);
+            margin-right: 2px;
+            opacity: 0.5;
+        }
+
+        .color-test {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+        }
+        .color-box {
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+        }
+
+        @media (max-width: 700px) {
+            .terminal-body {
+                flex-direction: column;
+                text-align: center;
+                gap: 20px;
+            }
+            .output-line {
+                justify-content: center;
+            }
+            .key {
+                text-align: right;
+                margin-right: 10px;
+                min-width: auto;
+            }
+            .color-test {
+                justify-content: center;
+            }
+            .avatar {
+                width: 150px;
+                height: 150px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <audio id="audio" loop>
+        <source src="sound.mp3" type="audio/mpeg">
+    </audio>
+
+    <div id="overlay">
+        <div class="terminal-prompt">
+            <span class="user">guest</span><span class="at">@</span><span class="host">deeewi</span>:~$ ./initialize_shell.sh<span class="blinking-cursor"></span>
+        </div>
+    </div>
+
+    <div class="terminal-window" id="container">
+        <div class="terminal-header">
+            <div class="dots">
+                <div class="dot dot-red"></div>
+                <div class="dot dot-yellow"></div>
+                <div class="dot dot-green"></div>
+            </div>
+            <div class="title">Terminal</div>
+        </div>
+        
+        <div class="terminal-body">
+            <div class="avatar-container">
+                <img src="https://i1.sndcdn.com/avatars-zdUYKESWIwunBUSv-r0xMJw-t500x500.jpg"
+                     alt="deeewi"
+                     class="avatar"
+                     draggable="false">
+            </div>
+            
+            <div class="info-container">
+                <div class="command-line">
+                    <span class="user">deeewi</span><span class="at">@</span><span class="host">arch</span>:<span class="path">~</span>$ neofetch
+                </div>
+
+                <div class="output-line">
+                    <span class="key">User</span>
+                    <span class="value">deeewi</span>
+                </div>
+                <div class="output-line">
+                    <span class="key">Status</span>
+                    <span class="value">ฅᨐฅ</span>
+                </div>
+                <div class="output-line">
+                    <span class="key">Uptime</span>
+                    <span class="value" id="uptime">0m</span>
+                </div>
+                <div class="output-line">
+                    <span class="key">Shell</span>
+                    <span class="value">fish 4.3.2</span>
+                </div>
+                
+                <br> <div class="output-line">
+                    <span class="key">Socials</span>
+                    <span class="value">
+                        [<a href="https://github.com/malinacoin" target="_blank" class="link">github</a>] 
+                        [<a href="https://steamcommunity.com/id/deeewi/" target="_blank" class="link">steam</a>]
+                    </span>
+                </div>
+
+                <div class="color-test">
+                    <div class="color-box" style="background: #1e1e2e"></div>
+                    <div class="color-box" style="background: #f38ba8"></div>
+                    <div class="color-box" style="background: #a6e3a1"></div>
+                    <div class="color-box" style="background: #f9e2af"></div>
+                    <div class="color-box" style="background: #89b4fa"></div>
+                    <div class="color-box" style="background: #f5c2e7"></div>
+                    <div class="color-box" style="background: #94e2d5"></div>
+                    <div class="color-box" style="background: #cdd6f4"></div>
+                </div>
+                
+                <br>
+                <div class="command-line">
+                    <span class="user">deeewi</span><span class="at">@</span><span class="host">arch</span>:<span class="path">~</span>$ <span class="blinking-cursor"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const overlay = document.getElementById('overlay');
+        const container = document.getElementById('container');
+        const audio = document.getElementById('audio');
+        const uptimeElement = document.getElementById('uptime');
+
+        // Simple uptime counter
+        let seconds = 0;
+        setInterval(() => {
+            seconds++;
+            const mins = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            uptimeElement.innerText = `${mins}m ${secs}s`;
+        }, 1000);
+
+        overlay.addEventListener('click', () => {
+            overlay.classList.add('hidden');
+            container.classList.add('visible');
+            audio.volume = 0.2;
+            audio.play().catch(() => {});
+        });
+
+        document.querySelector('.avatar').addEventListener('contextmenu', e => e.preventDefault());
+    </script>
+</body>
+</html>
